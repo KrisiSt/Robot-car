@@ -13,7 +13,7 @@ function Profile({ user, onLogout, onNavigateBack }) {
     } else {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, loadUserData]);
 
   const loadUserData = async () => {
     setLoading(true);

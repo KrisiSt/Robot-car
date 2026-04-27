@@ -23,7 +23,7 @@ function WiFiRobotControl({ user, onNavigateToProfile }) {
         handleDisconnectLogging();
       }
     };
-  }, []);
+  }, [handleDisconnectLogging, testConnection, user?.isGuest]);
 
   const testConnection = async () => {
     setStatus('Testing connection...');
@@ -128,6 +128,7 @@ function WiFiRobotControl({ user, onNavigateToProfile }) {
     const handleKeyDown = (e) => {
       if (!isConnected) return;
       
+      
       switch(e.key.toLowerCase()) {
         case 'w':
         case 'arrowup':
@@ -183,7 +184,7 @@ function WiFiRobotControl({ user, onNavigateToProfile }) {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [isConnected, activeButton, speed]);
+  }, [isConnected, activeButton, speed, handleMove, handleStop]);
 
   return (
     <div className="wifi-robot-control">
