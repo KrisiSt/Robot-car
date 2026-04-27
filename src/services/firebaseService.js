@@ -13,9 +13,6 @@ import {
 } from 'firebase/firestore';
  
 class FirebaseService {
-  
-  // ========== CONNECTION LOGGING ==========
-  
   /**
    * Log a new robot connection
    * @param {string} userId - User ID from Firebase Auth
@@ -33,10 +30,10 @@ class FirebaseService {
         duration: 0
       });
       
-      console.log('✅ Connection logged:', connectionRef.id);
+      console.log('Connection logged:', connectionRef.id);
       return { success: true, connectionId: connectionRef.id };
     } catch (error) {
-      console.error('❌ Failed to log connection:', error);
+      console.error('Failed to log connection:', error);
       return { success: false, error: error.message };
     }
   }
@@ -56,10 +53,10 @@ class FirebaseService {
         duration: duration
       });
       
-      console.log('✅ Disconnection logged');
+      console.log('Disconnection logged');
       return { success: true };
     } catch (error) {
-      console.error('❌ Failed to log disconnection:', error);
+      console.error('Failed to log disconnection:', error);
       return { success: false, error: error.message };
     }
   }
@@ -84,15 +81,13 @@ class FirebaseService {
         ...doc.data()
       }));
       
-      console.log(`✅ Retrieved ${connections.length} connections`);
+      console.log(`Retrieved ${connections.length} connections`);
       return { success: true, connections };
     } catch (error) {
-      console.error('❌ Failed to get connection history:', error);
+      console.error('Failed to get connection history:', error);
       return { success: false, error: error.message, connections: [] };
     }
   }
- 
-  // ========== USER PROFILE ==========
  
   /**
    * Update user's last login time
@@ -107,12 +102,10 @@ class FirebaseService {
       
       return { success: true };
     } catch (error) {
-      console.error('❌ Failed to update last login:', error);
+      console.error('Failed to update last login:', error);
       return { success: false };
     }
   }
- 
-  // ========== STATISTICS ==========
  
   /**
    * Get user statistics (total connections, total time, etc.)
@@ -141,7 +134,7 @@ class FirebaseService {
  
       return { success: true, stats };
     } catch (error) {
-      console.error('❌ Failed to get user stats:', error);
+      console.error('Failed to get user stats:', error);
       return { success: false, stats: null };
     }
   }
@@ -163,12 +156,9 @@ class FirebaseService {
       return `${secs}s`;
     }
   }
- 
-  // ========== FUTURE: METADATA STORAGE ==========
   // (Instead of video files, store metadata only)
   
   /**
-   * Log recording metadata (NOT the actual video file)
    * Store: filename, duration, timestamp, thumbnail URL (if you generate one client-side)
    * @param {string} userId - User ID
    * @param {object} recordingMeta - Recording metadata
@@ -185,10 +175,10 @@ class FirebaseService {
         notes: recordingMeta.notes || ''
       });
       
-      console.log('✅ Recording metadata logged:', recordingRef.id);
+      console.log('Recording metadata logged:', recordingRef.id);
       return { success: true, recordingId: recordingRef.id };
     } catch (error) {
-      console.error('❌ Failed to log recording:', error);
+      console.error('Failed to log recording:', error);
       return { success: false, error: error.message };
     }
   }
@@ -213,10 +203,10 @@ class FirebaseService {
         ...doc.data()
       }));
       
-      console.log(`✅ Retrieved ${recordings.length} recordings`);
+      console.log(`Retrieved ${recordings.length} recordings`);
       return { success: true, recordings };
     } catch (error) {
-      console.error('❌ Failed to get recordings:', error);
+      console.error('Failed to get recordings:', error);
       return { success: false, error: error.message, recordings: [] };
     }
   }

@@ -18,8 +18,6 @@ function WiFiRobotControl({ user, onNavigateToProfile }) {
 
   useEffect(() => {
     testConnection();
-    
-    // Cleanup: log disconnection when component unmounts
     return () => {
       if (connectionIdRef.current && !user?.isGuest) {
         handleDisconnectLogging();
@@ -28,12 +26,12 @@ function WiFiRobotControl({ user, onNavigateToProfile }) {
   }, []);
 
   const testConnection = async () => {
-    setStatus('🔄 Testing connection...');
+    setStatus('Testing connection...');
     const result = await wifiRobotAPI.ping();
     
     if (result.success) {
       setIsConnected(true);
-      setStatus('✅ Connected to robot via WiFi');
+      setStatus('Connected to robot via WiFi');
       
       // Log connection to Firebase (skip for guest users)
       if (!user?.isGuest && user?.uid) {
@@ -41,7 +39,7 @@ function WiFiRobotControl({ user, onNavigateToProfile }) {
       }
     } else {
       setIsConnected(false);
-      setStatus('❌ Not connected. Make sure you are on robot WiFi: ELEGOO-04FADA16A398');
+      setStatus('Not connected. Make sure you are on robot WiFi: ELEGOO-04FADA16A398');
     }
   };
 
@@ -55,7 +53,7 @@ function WiFiRobotControl({ user, onNavigateToProfile }) {
       if (result.success) {
         connectionIdRef.current = result.connectionId;
         connectionStartTimeRef.current = Date.now();
-        console.log('📊 Connection logged to Firebase');
+        console.log('Connection logged to Firebase');
       }
     } catch (error) {
       console.error('Failed to log connection:', error);
@@ -73,7 +71,7 @@ function WiFiRobotControl({ user, onNavigateToProfile }) {
       duration
     );
     
-    console.log(`📊 Disconnection logged. Duration: ${duration}s`);
+    console.log(`Disconnection logged. Duration: ${duration}s`);
   };
 
   const handleMove = async (direction, actionFunction) => {
@@ -85,7 +83,7 @@ function WiFiRobotControl({ user, onNavigateToProfile }) {
       console.log(`Moving: ${direction} at speed ${speed}`);
     } catch (error) {
       console.error('Move failed:', error);
-      setStatus(`❌ Error: ${error.message}`);
+      setStatus(`Error: ${error.message}`);
     }
   };
 
@@ -106,10 +104,10 @@ function WiFiRobotControl({ user, onNavigateToProfile }) {
     try {
       await wifiRobotAPI.setLED(r, g, b, 0);
       setActiveLED(colorName);
-      setStatus(`✅ LED set to ${colorName.toUpperCase()}`);
+      setStatus(`LED set to ${colorName.toUpperCase()}`);
     } catch (error) {
       console.error('LED failed:', error);
-      setStatus(`❌ LED error: ${error.message}`);
+      setStatus(`LED error: ${error.message}`);
     }
   };
 
@@ -118,10 +116,10 @@ function WiFiRobotControl({ user, onNavigateToProfile }) {
     try {
       await wifiRobotAPI.setMode(mode);
       setActiveMode(mode);
-      setStatus(`✅ Mode: ${modeName}`);
+      setStatus(`Mode: ${modeName}`);
     } catch (error) {
       console.error('Mode change failed:', error);
-      setStatus(`❌ Mode error: ${error.message}`);
+      setStatus(`Mode error: ${error.message}`);
     }
   };
 
@@ -194,9 +192,6 @@ function WiFiRobotControl({ user, onNavigateToProfile }) {
         <div className="project-area">
           <h1 className="project-name">
             Elegoo Robot WiFi Control
-            <span className="badge-robot">
-              <i className="fas fa-robot"></i> V4.0
-            </span>
           </h1>
         </div>
         <div className="header-right">

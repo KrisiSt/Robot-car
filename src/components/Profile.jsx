@@ -75,7 +75,7 @@ function Profile({ user, onLogout, onNavigateBack }) {
       <div className="header">
         <div className="project-area">
           <h1 className="project-name">
-            👤 User Profile
+            User Profile
           </h1>
         </div>
         <div className="header-right">
@@ -83,7 +83,7 @@ function Profile({ user, onLogout, onNavigateBack }) {
             onClick={onNavigateBack}
             style={{
               padding: '10px 24px',
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              background: 'linear-gradient(135deg, #b88e9d 0%, #b88e9d 100%)',
               color: 'white',
               border: 'none',
               borderRadius: '40px',
@@ -97,7 +97,7 @@ function Profile({ user, onLogout, onNavigateBack }) {
           </button>
           <button onClick={onLogout} style={{
             padding: '10px 24px',
-            background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+            background: 'linear-gradient(135deg, #b88e9d 0%, #b88e9d 100%)',
             color: 'white',
             border: 'none',
             borderRadius: '40px',
@@ -105,7 +105,7 @@ function Profile({ user, onLogout, onNavigateBack }) {
             fontWeight: '600',
             fontSize: '14px',
           }}>
-            🚪 Logout
+            Logout
           </button>
         </div>
       </div>
@@ -141,17 +141,17 @@ function Profile({ user, onLogout, onNavigateBack }) {
               </div>
             )}
             <div>
-              <strong style={{ color: '#667eea' }}>Username:</strong>
+              <strong style={{ color: '#d6a4a4' }}>Username:</strong>
               <p style={{ margin: '4px 0', color: '#4b5563' }}>{user.username}</p>
             </div>
             <div>
-              <strong style={{ color: '#667eea' }}>Email:</strong>
+              <strong style={{ color: '#d6a4a4' }}>Email:</strong>
               <p style={{ margin: '4px 0', color: '#4b5563' }}>{user.email || 'N/A'}</p>
             </div>
             <div>
-              <strong style={{ color: '#667eea' }}>Account Type:</strong>
+              <strong style={{ color: '#d6a4a4' }}>Account Type:</strong>
               <p style={{ margin: '4px 0', color: '#4b5563' }}>
-                {user.isGuest ? '🎭 Guest Account' : '✅ Registered Account'}
+                {user.isGuest ? 'Guest Account' : 'Registered Account'}
               </p>
             </div>
           </div>
@@ -167,7 +167,7 @@ function Profile({ user, onLogout, onNavigateBack }) {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div style={{ 
                 padding: '16px',
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                background: 'linear-gradient(135deg, #d6a4a4 0%, #dae2f8 100%)',
                 borderRadius: '12px',
                 color: 'white'
               }}>
@@ -180,7 +180,7 @@ function Profile({ user, onLogout, onNavigateBack }) {
               </div>
               <div style={{ 
                 padding: '16px',
-                background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                background: 'linear-gradient(135deg, #d6a4a4 0%, #dae2f8 100%)',
                 borderRadius: '12px',
                 color: 'white'
               }}>

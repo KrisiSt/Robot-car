@@ -10,11 +10,11 @@ class WiFiRobotAPI {
   async ping() {
     try {
       const response = await axios.get('/status', { timeout: 2000 });
-      console.log('✅ Robot connected:', response.data);
+      console.log('Robot connected:', response.data);
       this.isConnected = true;
       return { success: true, data: response.data };
     } catch (error) {
-      console.log('❌ Connection failed:', error.message);
+      console.log('Connection failed:', error.message);
       this.isConnected = false;
       return { success: false, error: error.message };
     }
@@ -26,10 +26,10 @@ class WiFiRobotAPI {
         params: { action, speed },
         timeout: 3000
       });
-      console.log(`✅ Motor command sent: ${action} @ ${speed}`);
+      console.log(`Motor command sent: ${action} @ ${speed}`);
       return response.data;
     } catch (error) {
-      console.error('❌ Motor command failed:', error);
+      console.error('Motor command failed:', error);
       throw error;
     }
   }
@@ -60,10 +60,10 @@ class WiFiRobotAPI {
         params: { r, g, b, pos: position },
         timeout: 3000
       });
-      console.log(`✅ LED set: R=${r} G=${g} B=${b} Pos=${position}`);
+      console.log(`LED set: R=${r} G=${g} B=${b} Pos=${position}`);
       return response.data;
     } catch (error) {
-      console.error('❌ LED command failed:', error);
+      console.error('LED command failed:', error);
       throw error;
     }
   }
@@ -74,10 +74,10 @@ class WiFiRobotAPI {
         params: { mode },
         timeout: 3000
       });
-      console.log(`✅ Mode changed to: ${mode}`);
+      console.log(`Mode changed to: ${mode}`);
       return response.data;
     } catch (error) {
-      console.error('❌ Mode change failed:', error);
+      console.error('Mode change failed:', error);
       throw error;
     }
   }
