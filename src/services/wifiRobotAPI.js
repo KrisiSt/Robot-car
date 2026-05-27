@@ -1,15 +1,19 @@
 // Using the ESP for the control
 import axios from 'axios';
 
+// In development, proxy forwards relative URLs to the robot.
+// In production, we must call the robot's IP directly.
+const BASE_URL = process.env.NODE_ENV === 'development' ? '' : 'http://192.168.4.1';
+
 class WiFiRobotAPI {
   constructor() {
     this.isConnected = false;
-    this.baseURL = ''; // Using proxy, so empty string
+    this.client = axios.create({ baseURL: BASE_URL });
   }
 
   async ping() {
     try {
-      const response = await axios.get('/status', { timeout: 2000 });
+      const response = await this.client.get('/status', { timeout: 2000 });
       console.log('Robot connected:', response.data);
       this.isConnected = true;
       return { success: true, data: response.data };
@@ -22,7 +26,7 @@ class WiFiRobotAPI {
 
   async sendMotorCommand(action, speed = 150) {
     try {
-      const response = await axios.get('/motor', {
+      const response = await this.client.get('/motor', {
         params: { action, speed },
         timeout: 3000
       });
@@ -56,7 +60,7 @@ class WiFiRobotAPI {
 
   async setLED(r, g, b, position = 0) {
     try {
-      const response = await axios.get('/led', {
+      const response = await this.client.get('/led', {
         params: { r, g, b, pos: position },
         timeout: 3000
       });
@@ -70,7 +74,7 @@ class WiFiRobotAPI {
 
   async setMode(mode) {
     try {
-      const response = await axios.get('/mode', {
+      const response = await this.client.get('/mode', {
         params: { mode },
         timeout: 3000
       });
