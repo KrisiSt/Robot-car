@@ -1,16 +1,24 @@
 import { db } from '../firebase/config';
-import { 
-  collection, 
-  addDoc, 
-  getDocs, 
+import {
+  collection,
+  addDoc,
+  getDocs,
   query,
-  orderBy, 
+  orderBy,
   limit,
   serverTimestamp,
   updateDoc,
   doc
 } from 'firebase/firestore';
- 
+
+const withTimeout = (promise, ms = 8000) =>
+  Promise.race([
+    promise,
+    new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('Firestore request timed out')), ms)
+    )
+  ]);
+
 class FirebaseService {
   /**
    * Log a new robot connection
@@ -20,7 +28,7 @@ class FirebaseService {
   async logConnection(userId, deviceInfo = {}) {
     try {
       const now = new Date();
-      const connectionRef = await addDoc(collection(db, 'users', userId, 'connections'), {
+      const connectionRef = await withTimeout(addDoc(collection(db, 'users', userId, 'connections'), {
         deviceId: deviceInfo.ssid || 'ELEGOO-04FADA16A398',
         deviceType: 'Elegoo Robot Car V4.0',
         ipAddress: deviceInfo.ip || '192.168.4.1',
@@ -29,7 +37,7 @@ class FirebaseService {
         status: 'active',
         disconnectedAt: null,
         duration: 0
-      });
+      }));
       
       console.log('Connection logged:', connectionRef.id);
       return { success: true, connectionId: connectionRef.id };
@@ -48,11 +56,11 @@ class FirebaseService {
   async logDisconnection(userId, connectionId, duration = 0) {
     try {
       const connectionRef = doc(db, 'users', userId, 'connections', connectionId);
-      await updateDoc(connectionRef, {
+      await withTimeout(updateDoc(connectionRef, {
         disconnectedAt: serverTimestamp(),
         status: 'completed',
         duration: duration
-      });
+      }));
       
       console.log('Disconnection logged');
       return { success: true };
@@ -76,13 +84,11 @@ class FirebaseService {
         limit(limitCount)
       );
       
-      const snapshot = await getDocs(q);
+      const snapshot = await withTimeout(getDocs(q));
       const connections = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       }));
-      
-      console.log(`Retrieved ${connections.length} connections`);
       return { success: true, connections };
     } catch (error) {
       console.error('Failed to get connection history:', error);
