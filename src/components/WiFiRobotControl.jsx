@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import wifiRobotAPI from '../services/wifiRobotAPI';
 import firebaseService from '../services/firebaseService';
 import './WiFiRobotControl.css';
@@ -13,27 +13,58 @@ function WiFiRobotControl({ user, onNavigateToProfile }) {
   const [activeLED, setActiveLED] = useState('off');
   
   // Track connection for Firebase logging
-  const connectionIdRef = useRef(null);
-  const connectionStartTimeRef = useRef(null);
+  const connectionIdRef = useRef(sessionStorage.getItem('robot_conn_id') || null);
+  const connectionStartTimeRef = useRef(
+    sessionStorage.getItem('robot_conn_start') ? parseInt(sessionStorage.getItem('robot_conn_start')) : null
+  );
 
-  useEffect(() => {
-    testConnection();
-    return () => {
-      if (connectionIdRef.current && !user?.isGuest) {
-        handleDisconnectLogging();
+  const logConnectionToFirebase = useCallback(async () => {
+    if (connectionIdRef.current) return;
+    try {
+      const result = await firebaseService.logConnection(user.uid, {
+        ssid: 'ELEGOO-04FADA16A398',
+        ip: '192.168.4.1'
+      });
+      if (result.success) {
+        connectionIdRef.current = result.connectionId;
+        connectionStartTimeRef.current = Date.now();
+        sessionStorage.setItem('robot_conn_id', result.connectionId);
+        sessionStorage.setItem('robot_conn_start', Date.now().toString());
       }
-    };
-  }, [handleDisconnectLogging, testConnection, user?.isGuest]);
+    } catch (error) {
+      console.error('Failed to log connection:', error);
+    }
+  }, [user?.uid]);
 
-  const testConnection = async () => {
-    setStatus('Testing connection...');
+  const handleDisconnectLogging = useCallback(async () => {
+    if (!connectionIdRef.current || !connectionStartTimeRef.current) return;
+    const duration = Math.floor((Date.now() - connectionStartTimeRef.current) / 1000);
+    await firebaseService.logDisconnection(user.uid, connectionIdRef.current, duration);
+    connectionIdRef.current = null;
+    connectionStartTimeRef.current = null;
+    sessionStorage.removeItem('robot_conn_id');
+    sessionStorage.removeItem('robot_conn_start');
+  }, [user?.uid]);
+
+  // Silent check on mount — never logs to Firebase
+  const checkConnection = useCallback(async () => {
     const result = await wifiRobotAPI.ping();
-    
     if (result.success) {
       setIsConnected(true);
       setStatus('Connected to robot via WiFi');
-      
-      // Log connection to Firebase (skip for guest users)
+    } else {
+      setIsConnected(false);
+      setStatus('Not connected. Make sure you are on robot WiFi: ELEGOO-04FADA16A398');
+    }
+  }, []);
+
+  // Explicit Connect button click — logs to Firebase
+  const handleConnectClick = useCallback(async () => {
+    setStatus('Testing connection...');
+    const result = await wifiRobotAPI.ping();
+    if (result.success) {
+      setIsConnected(true);
+      setStatus('Connected to robot via WiFi');
       if (!user?.isGuest && user?.uid) {
         logConnectionToFirebase();
       }
@@ -41,42 +72,32 @@ function WiFiRobotControl({ user, onNavigateToProfile }) {
       setIsConnected(false);
       setStatus('Not connected. Make sure you are on robot WiFi: ELEGOO-04FADA16A398');
     }
-  };
+  }, [user?.isGuest, user?.uid, logConnectionToFirebase]);
 
-  const logConnectionToFirebase = async () => {
-    try {
-      const result = await firebaseService.logConnection(user.uid, {
-        ssid: 'ELEGOO-04FADA16A398',
-        ip: '192.168.4.1'
-      });
-      
-      if (result.success) {
-        connectionIdRef.current = result.connectionId;
-        connectionStartTimeRef.current = Date.now();
-        console.log('Connection logged to Firebase');
+  const handleDisconnect = useCallback(async () => {
+    if (!user?.isGuest && connectionIdRef.current) {
+      try {
+        await handleDisconnectLogging();
+      } catch (error) {
+        console.error('Failed to log disconnection:', error);
       }
-    } catch (error) {
-      console.error('Failed to log connection:', error);
     }
-  };
+    connectionIdRef.current = null;
+    connectionStartTimeRef.current = null;
+    sessionStorage.removeItem('robot_conn_id');
+    sessionStorage.removeItem('robot_conn_start');
+    setIsConnected(false);
+    setActiveButton(null);
+    setActiveMode(null);
+    setStatus('Not connected. Make sure you are on robot WiFi: ELEGOO-04FADA16A398');
+  }, [user?.isGuest, handleDisconnectLogging]);
 
-  const handleDisconnectLogging = async () => {
-    if (!connectionIdRef.current || !connectionStartTimeRef.current) return;
-    
-    const duration = Math.floor((Date.now() - connectionStartTimeRef.current) / 1000);
-    
-    await firebaseService.logDisconnection(
-      user.uid,
-      connectionIdRef.current,
-      duration
-    );
-    
-    console.log(`Disconnection logged. Duration: ${duration}s`);
-  };
+  useEffect(() => {
+    checkConnection();
+  }, [checkConnection]);
 
-  const handleMove = async (direction, actionFunction) => {
+  const handleMove = useCallback(async (direction, actionFunction) => {
     if (!isConnected) return;
-    
     setActiveButton(direction);
     try {
       await actionFunction();
@@ -85,9 +106,9 @@ function WiFiRobotControl({ user, onNavigateToProfile }) {
       console.error('Move failed:', error);
       setStatus(`Error: ${error.message}`);
     }
-  };
+  }, [isConnected, speed]);
 
-  const handleStop = async () => {
+  const handleStop = useCallback(async () => {
     setActiveButton(null);
     if (isConnected) {
       try {
@@ -97,7 +118,7 @@ function WiFiRobotControl({ user, onNavigateToProfile }) {
         console.error('Stop failed:', error);
       }
     }
-  };
+  }, [isConnected]);
 
   const handleLED = async (r, g, b, colorName) => {
     if (!isConnected) return;
@@ -196,8 +217,14 @@ function WiFiRobotControl({ user, onNavigateToProfile }) {
           </h1>
         </div>
         <div className="header-right">
-          <button 
-            onClick={testConnection}
+          {isConnected && (
+            <button onClick={handleDisconnect} className="disconnect-btn">
+              <i className="fas fa-plug"></i>
+              Disconnect
+            </button>
+          )}
+          <button
+            onClick={handleConnectClick}
             className={`connect-btn ${isConnected ? 'connected' : ''}`}
           >
             <i className={`fas ${isConnected ? 'fa-check-circle' : 'fa-wifi'}`}></i>
@@ -210,18 +237,20 @@ function WiFiRobotControl({ user, onNavigateToProfile }) {
             title="View Profile"
           >
             {user.photoURL ? (
-              <img 
-                src={user.photoURL} 
+              <img
+                src={user.photoURL}
                 alt={user.username}
-                style={{ 
-                  width: '100%', 
-                  height: '100%', 
+                style={{
+                  width: '100%',
+                  height: '100%',
                   borderRadius: '50%',
-                  objectFit: 'cover' 
+                  objectFit: 'cover'
                 }}
               />
             ) : (
-              <i className="fas fa-user"></i>
+              <span style={{ fontSize: '1.2rem', fontWeight: '600', color: '#b88e9d' }}>
+                {user.username?.charAt(0).toUpperCase()}
+              </span>
             )}
           </div>
         </div>

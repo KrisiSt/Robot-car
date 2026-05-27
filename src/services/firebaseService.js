@@ -19,11 +19,13 @@ class FirebaseService {
    */
   async logConnection(userId, deviceInfo = {}) {
     try {
+      const now = new Date();
       const connectionRef = await addDoc(collection(db, 'users', userId, 'connections'), {
         deviceId: deviceInfo.ssid || 'ELEGOO-04FADA16A398',
         deviceType: 'Elegoo Robot Car V4.0',
         ipAddress: deviceInfo.ip || '192.168.4.1',
         connectedAt: serverTimestamp(),
+        connectedAtClient: now.toISOString(),
         status: 'active',
         disconnectedAt: null,
         duration: 0

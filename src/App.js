@@ -5,6 +5,7 @@ import Profile from './components/Profile';
 import { signOut, onAuthStateChanged } from 'firebase/auth';
 import { auth, db } from './firebase/config';
 import { doc, getDoc } from 'firebase/firestore';
+import firebaseService from './services/firebaseService';
 import './App.css';
 
 function App() {
@@ -64,6 +65,14 @@ function App() {
 
   const handleLogout = async () => {
     if (!user?.isGuest) {
+      const connId = sessionStorage.getItem('robot_conn_id');
+      const connStart = sessionStorage.getItem('robot_conn_start');
+      if (connId && user?.uid) {
+        const duration = connStart ? Math.floor((Date.now() - parseInt(connStart)) / 1000) : 0;
+        await firebaseService.logDisconnection(user.uid, connId, duration);
+      }
+      sessionStorage.removeItem('robot_conn_id');
+      sessionStorage.removeItem('robot_conn_start');
       try {
         await signOut(auth);
       } catch (error) {

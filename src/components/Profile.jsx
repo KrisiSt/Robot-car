@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import firebaseService from '../services/firebaseService';
 import './WiFiRobotControl.css';
 
@@ -6,6 +6,22 @@ function Profile({ user, onLogout, onNavigateBack }) {
   const [connections, setConnections] = useState([]);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  const loadUserData = useCallback(async () => {
+    setLoading(true);
+
+    const connectionsResult = await firebaseService.getConnectionHistory(user.uid, 10);
+    if (connectionsResult.success) {
+      setConnections(connectionsResult.connections);
+    }
+
+    const statsResult = await firebaseService.getUserStats(user.uid);
+    if (statsResult.success) {
+      setStats(statsResult.stats);
+    }
+
+    setLoading(false);
+  }, [user]);
 
   useEffect(() => {
     if (!user?.isGuest && user?.uid) {
@@ -15,58 +31,39 @@ function Profile({ user, onLogout, onNavigateBack }) {
     }
   }, [user, loadUserData]);
 
-  const loadUserData = async () => {
-    setLoading(true);
-    
-    // Load connection history
-    const connectionsResult = await firebaseService.getConnectionHistory(user.uid, 10);
-    if (connectionsResult.success) {
-      setConnections(connectionsResult.connections);
-    }
-
-    // Load statistics
-    const statsResult = await firebaseService.getUserStats(user.uid);
-    if (statsResult.success) {
-      setStats(statsResult.stats);
-    }
-
-    setLoading(false);
-  };
-
-  const formatDate = (timestamp) => {
-    if (!timestamp) return 'N/A';
-    
+  const formatDate = (timestamp, fallbackIso) => {
     try {
-      // Handle Firestore Timestamp
       let date;
-      if (timestamp.toDate && typeof timestamp.toDate === 'function') {
-        // Firestore Timestamp
+      if (timestamp?.toDate) {
         date = timestamp.toDate();
-      } else if (timestamp.seconds) {
-        // Firestore Timestamp object with seconds
+      } else if (timestamp?.seconds) {
         date = new Date(timestamp.seconds * 1000);
       } else if (timestamp instanceof Date) {
-        // Already a Date object
         date = timestamp;
       } else if (typeof timestamp === 'string' || typeof timestamp === 'number') {
-        // ISO string or Unix timestamp
         date = new Date(timestamp);
+      } else if (fallbackIso) {
+        date = new Date(fallbackIso);
       } else {
         return 'N/A';
       }
-      
       return date.toLocaleString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit'
+        year: 'numeric', month: 'short', day: 'numeric',
+        hour: '2-digit', minute: '2-digit', second: '2-digit'
       });
-    } catch (error) {
-      console.error('Error formatting date:', error, timestamp);
-      return 'Invalid Date';
+    } catch {
+      return 'N/A';
     }
+  };
+
+  const resolveStatus = (conn) => {
+    if (conn.status !== 'active') return conn.status;
+    const ts = conn.connectedAt?.toDate?.() ||
+      (conn.connectedAt?.seconds ? new Date(conn.connectedAt.seconds * 1000) : null) ||
+      (conn.connectedAtClient ? new Date(conn.connectedAtClient) : null);
+    if (!ts) return 'interrupted';
+    const ageMinutes = (Date.now() - ts.getTime()) / 60000;
+    return ageMinutes > 5 ? 'interrupted' : 'active';
   };
 
   return (
@@ -261,22 +258,30 @@ function Profile({ user, onLogout, onNavigateBack }) {
                           {conn.deviceId}
                         </td>
                         <td style={{ padding: '12px', color: '#4b5563' }}>
-                          {formatDate(conn.connectedAt)}
+                          {formatDate(conn.connectedAt, conn.connectedAtClient)}
                         </td>
                         <td style={{ padding: '12px', color: '#4b5563' }}>
-                          {conn.duration > 0 ? firebaseService.formatDuration(conn.duration) : 'Active'}
+                          {conn.duration > 0 ? firebaseService.formatDuration(conn.duration) : '—'}
                         </td>
                         <td style={{ padding: '12px' }}>
-                          <span style={{
-                            padding: '4px 12px',
-                            borderRadius: '12px',
-                            fontSize: '12px',
-                            fontWeight: '600',
-                            backgroundColor: conn.status === 'active' ? '#d1fae5' : '#e0e7ff',
-                            color: conn.status === 'active' ? '#065f46' : '#3730a3'
-                          }}>
-                            {conn.status}
-                          </span>
+                          {(() => {
+                            const status = resolveStatus(conn);
+                            const styles = {
+                              active:      { bg: '#d1fae5', fg: '#065f46' },
+                              completed:   { bg: '#e0e7ff', fg: '#3730a3' },
+                              interrupted: { bg: '#fef3c7', fg: '#92400e' },
+                            };
+                            const { bg, fg } = styles[status] || styles.interrupted;
+                            return (
+                              <span style={{
+                                padding: '4px 12px', borderRadius: '12px',
+                                fontSize: '12px', fontWeight: '600',
+                                backgroundColor: bg, color: fg
+                              }}>
+                                {status}
+                              </span>
+                            );
+                          })()}
                         </td>
                       </tr>
                     ))}

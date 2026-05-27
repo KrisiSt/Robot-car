@@ -278,6 +278,7 @@
 
 .social-btn.google {
   flex: 1;
+  justify-content: center;
 }
 
 .social-btn.apple {
