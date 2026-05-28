@@ -303,7 +303,7 @@ function Profile({ user, onLogout, onNavigateBack }) {
               borderRadius: '12px',
               border: '2px dashed #fed7aa'
             }}>
-              <p style={{ fontSize: '48px', margin: '0 0 16px 0' }}>🎭</p>
+              <p style={{ fontSize: '48px', margin: '0 0 16px 0' }}></p>
               <p style={{ margin: '0', fontSize: '20px', fontWeight: '600', color: '#92400e' }}>
                 Guest Account
               </p>

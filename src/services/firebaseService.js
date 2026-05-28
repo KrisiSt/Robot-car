@@ -21,9 +21,9 @@ const withTimeout = (promise, ms = 8000) =>
 
 class FirebaseService {
   /**
-   * Log a new robot connection
-   * @param {string} userId - User ID from Firebase Auth
-   * @param {object} deviceInfo - Robot device information
+   Log a new robot connection
+   @param {string} userId - User ID from Firebase Auth
+   @param {object} deviceInfo - Robot device information
    */
   async logConnection(userId, deviceInfo = {}) {
     try {
@@ -48,10 +48,10 @@ class FirebaseService {
   }
  
   /**
-   * Update connection when disconnected
-   * @param {string} userId - User ID
-   * @param {string} connectionId - Connection document ID
-   * @param {number} duration - Connection duration in seconds
+   Update connection when disconnected
+   @param {string} userId - User ID
+   @param {string} connectionId - Connection document ID
+   @param {number} duration - Connection duration in seconds
    */
   async logDisconnection(userId, connectionId, duration = 0) {
     try {
@@ -71,9 +71,9 @@ class FirebaseService {
   }
  
   /**
-   * Get user's connection history
-   * @param {string} userId - User ID
-   * @param {number} limitCount - Number of connections to retrieve
+   Get user's connection history
+   @param {string} userId - User ID
+   @param {number} limitCount - Number of connections to retrieve
    */
   async getConnectionHistory(userId, limitCount = 10) {
     try {
@@ -97,8 +97,8 @@ class FirebaseService {
   }
  
   /**
-   * Update user's last login time
-   * @param {string} userId - User ID
+   Update user's last login time
+   @param {string} userId - User ID
    */
   async updateLastLogin(userId) {
     try {
@@ -115,8 +115,8 @@ class FirebaseService {
   }
  
   /**
-   * Get user statistics (total connections, total time, etc.)
-   * @param {string} userId - User ID
+   Get user statistics (total connections, total time, etc.)
+   @param {string} userId - User ID
    */
   async getUserStats(userId) {
     try {
@@ -147,8 +147,8 @@ class FirebaseService {
   }
  
   /**
-   * Format duration in seconds to human-readable string
-   * @param {number} seconds - Duration in seconds
+   Format duration in seconds to human-readable string
+   @param {number} seconds - Duration in seconds
    */
   formatDuration(seconds) {
     const hours = Math.floor(seconds / 3600);
@@ -163,12 +163,11 @@ class FirebaseService {
       return `${secs}s`;
     }
   }
-  // (Instead of video files, store metadata only)
   
   /**
-   * Store: filename, duration, timestamp, thumbnail URL (if you generate one client-side)
-   * @param {string} userId - User ID
-   * @param {object} recordingMeta - Recording metadata
+   Store: filename, duration, timestamp, thumbnail URL
+   @param {string} userId - User ID
+   @param {object} recordingMeta - Recording metadata
    */
   async logRecordingMetadata(userId, recordingMeta) {
     try {
@@ -178,7 +177,6 @@ class FirebaseService {
         duration: recordingMeta.duration || 0,
         fileSize: recordingMeta.fileSize || 0,
         deviceId: recordingMeta.deviceId || 'ELEGOO-04FADA16A398',
-        // thumbnailDataURL: recordingMeta.thumbnail, // Optional: base64 thumbnail (keep small!)
         notes: recordingMeta.notes || ''
       });
       
@@ -191,9 +189,9 @@ class FirebaseService {
   }
  
   /**
-   * Get user's recording metadata
-   * @param {string} userId - User ID
-   * @param {number} limitCount - Number of recordings to retrieve
+   Get user's recording metadata
+   @param {string} userId - User ID
+   @param {number} limitCount - Number of recordings to retrieve
    */
   async getRecordings(userId, limitCount = 20) {
     try {
